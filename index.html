@@ -99,6 +99,22 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertic
 th{color:var(--mut);font-weight:600;font-size:12px}
 select,input[type=number]{background:var(--bg3);border:1px solid var(--line);color:var(--tx);padding:8px 10px;border-radius:8px;font:inherit}
 label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size:13px}
+.ask-in{display:flex;gap:8px}
+.ask-in input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--line);color:var(--tx);padding:10px 12px;border-radius:9px;font:inherit}
+.ask-in input:focus{outline:none;border-color:var(--acc)}
+.pipe{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mut);margin-top:10px}
+.pipe:empty{display:none}
+.pipe span{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.pipe b{color:var(--acc)}
+.ans li{margin-bottom:6px}
+.cite{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--acc);font-weight:700;margin-left:4px}
+.hit{border-left:3px solid var(--line);padding:10px 12px;margin-top:10px;background:var(--bg3);border-radius:0 10px 10px 0;cursor:pointer}
+.hit .tx{white-space:pre-line;font-size:13px;color:var(--mut);margin-top:6px;max-height:4.8em;overflow:hidden}
+.hit.open .tx{max-height:none;color:var(--tx)}
+.hit mark{background:rgba(45,212,191,.22);color:inherit;border-radius:3px;padding:0 1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{background:none;border:1px dashed var(--line);color:var(--mut);border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+.chips button:hover{color:var(--acc);border-color:var(--acc)}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
 .toast.on{opacity:1}
 @media(max-width:600px){.hd{padding:10px}nav button{padding:6px 9px;font-size:12px}.stat{font-size:22px}}
@@ -114,6 +130,7 @@ label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size
     <button data-v="quiz">Luyện tập</button>
     <button data-v="exam">Thi thử</button>
     <button data-v="wrong">Câu sai</button>
+    <button data-v="ask">Hỏi đáp</button>
   </nav>
 </div></header>
 
@@ -261,10 +278,28 @@ label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size
   <div class="card"><div class="row" style="justify-content:space-between"><span class="sm mut" id="w-cnt"></span><div class="row"><button class="btn p sm" id="w-retry">Luyện lại các câu này</button><button class="btn sm" id="w-clear">Xoá danh sách</button></div></div></div>
   <div id="w-list"></div>
 </section>
+<!-- ASK (RAG) -->
+<section class="view" id="v-ask">
+  <h1>Hỏi đáp syllabus <span class="pill lo">RAG</span></h1>
+  <div class="card">
+    <div class="ask-in"><input id="a-q" placeholder="VD: RAG khác fine-tuning thế nào? / What is a context window?" autocomplete="off"><button class="btn p" id="a-go">Hỏi</button></div>
+    <div class="chips" id="a-chips"></div>
+    <div class="pipe" id="a-pipe"></div>
+  </div>
+  <div id="a-out"></div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="sm"><b>Nguồn tri thức</b> <span class="mut" id="a-src"></span></div>
+      <div class="row"><label class="btn sm" style="margin:0">Nạp PDF syllabus<input type="file" id="a-pdf" accept="application/pdf" hidden></label><button class="btn sm" id="a-clr" style="display:none">Bỏ PDF</button></div>
+    </div>
+    <p class="xs mut" style="margin:8px 0 0">Mặc định tìm trong ghi chú + glossary của app. Nạp file PDF syllabus (tải từ istqb.org) để tìm cả nguyên văn: PDF được đọc và chia đoạn ngay trong trình duyệt của bạn, không gửi đi đâu. Pipeline: <b>chunking</b> (cắt theo mục, ~170 từ, chồng 40) → <b>BM25</b> + <b>TF-IDF char-trigram</b> → gộp <b>Reciprocal Rank Fusion</b> → trích câu trả lời kèm trích dẫn. Không có LLM: dùng “Copy prompt” để đưa ngữ cảnh vào chatbot bạn dùng.</p>
+  </div>
+</section>
 </div>
 <div class="toast" id="toast"></div>
 
 <script src="data.js"></script>
+<script src="rag.js"></script>
 <script>
 // ===== STATE =====
 const KEY="ctgenai_v1";
@@ -282,8 +317,8 @@ function pickN(a,n){return shuffle(a).slice(0,n);}
 function accOf(st){const t=(st.r||0)+(st.w||0);return t?Math.round(st.r/t*100):null;}
 
 // ===== NAV =====
-const VIEWS=["home","study","cards","quiz","exam","wrong"];
-function show(v){VIEWS.forEach(x=>{$("#v-"+x).classList.toggle("on",x===v);});document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(v==="home")renderHome();if(v==="wrong")renderWrong();if(v==="cards")fcRender();if(v==="quiz")qPool();if(v==="exam")eHist();window.scrollTo(0,0);try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v);}catch(e){}}
+const VIEWS=["home","study","cards","quiz","exam","wrong","ask"];
+function show(v){VIEWS.forEach(x=>{$("#v-"+x).classList.toggle("on",x===v);});document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(v==="home")renderHome();if(v==="wrong")renderWrong();if(v==="cards")fcRender();if(v==="quiz")qPool();if(v==="exam")eHist();if(v==="ask")aInit();window.scrollTo(0,0);try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v);}catch(e){}}
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>show(b.dataset.v));
 window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(VIEWS.includes(h))show(h);});
 
@@ -386,6 +421,44 @@ function wrongList(){return QUIZ.filter(q=>{const s=S.stats[q.id];return s&&(s.w
 function renderWrong(){const l=wrongList();$("#w-cnt").textContent=`${l.length} câu cần ôn lại (đã sai ít nhất 1 lần và chưa "chuộc lỗi")`;$("#w-list").innerHTML=l.length?l.map(q=>{const s=S.stats[q.id];return `<div class="card"><div class="row xs" style="margin-bottom:6px"><span class="pill lo">GenAI-${q.lo}</span><span class="pill ${q.k}">${q.k}</span><span class="mut">sai ${s.w} · đúng ${s.r}</span></div><div style="font-weight:600;margin-bottom:8px">${esc(q.q)}</div><div class="sm"><b style="color:var(--ok)">${L[q.a]}. ${esc(q.o[q.a])}</b></div><div class="why" style="margin-top:8px">${q.w}</div></div>`;}).join(""):`<div class="card mut">Chưa có câu sai nào. Đi luyện tập đi 💪</div>`;}
 $("#w-retry").onclick=()=>{const l=wrongList();if(!l.length){toast("Không có câu sai");return;}startQuiz(l);show("quiz");};
 $("#w-clear").onclick=()=>{Object.values(S.stats).forEach(s=>{s.w=0;s.last=true;});save();renderWrong();toast("Đã xoá");};
+
+// ===== ASK (RAG) — engine trong rag.js =====
+const PDFKEY="ctgenai_rag_pdf";let aPdf=null,aReady=false,aLast=null;
+try{const r=localStorage.getItem(PDFKEY);if(r)aPdf=JSON.parse(r);}catch(e){aPdf=null;}
+function aIndex(){const ix=RAG.build(RAG.notesCorpus().concat(aPdf||[]));const np=aPdf?aPdf.length:0;
+  $("#a-src").textContent=`· ${ix.N} chunks (${np?np+" từ PDF + ":""}${ix.N-np} ghi chú/glossary) · ${ix.vocab.toLocaleString("vi-VN")} terms · index ${ix.ms.toFixed(0)} ms`;
+  $("#a-clr").style.display=np?"":"none";aReady=true;}
+function aInit(){if(!aReady)aIndex();
+  if(!$("#a-chips").childElementCount)["RAG là gì?","context window","few-shot vs chain-of-thought","How to mitigate hallucinations?","LLMOps","agent autonomy levels"].forEach(t=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>{$("#a-q").value=t;aAsk();};$("#a-chips").appendChild(b);});
+  setTimeout(()=>$("#a-q").focus(),50);}
+function aLabel(h){return h.src==="pdf"?`Syllabus §${h.ref} · tr.${h.page}`:h.src==="glossary"?"Glossary":`Ghi chú §${h.ref}`;}
+// Tô sáng từ khớp: so trên bản bỏ dấu (cùng độ dài với bản gốc NFC) rồi cắt đúng vị trí trên bản gốc.
+function aMark(text,terms){const t=esc(text.normalize("NFC"));if(!terms.length)return t;
+  const base=t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[đĐ]/g,"d");if(base.length!==t.length)return t;
+  const re=new RegExp("\\b(?:"+terms.map(x=>x.replace(/[^a-z0-9]/g,"")).filter(Boolean).join("|")+")[a-z0-9]*","gi");
+  let out="",last=0,m;while((m=re.exec(base))){out+=t.slice(last,m.index)+"<mark>"+t.slice(m.index,m.index+m[0].length)+"</mark>";last=m.index+m[0].length;}
+  return out+t.slice(last);}
+function aOpenSec(id){curCh=+id.split(".")[0];renderStudy();show("study");setTimeout(()=>{const el=document.getElementById("sec-"+id.replace(/\./g,"_"));if(el){el.classList.add("open");el.scrollIntoView({behavior:"smooth",block:"start"});}},60);}
+function aAsk(){const q=$("#a-q").value.trim();if(!q)return;if(!aReady)aIndex();
+  const r=RAG.search(q,5),A=RAG.answer(r);aLast=r;
+  $("#a-pipe").innerHTML=`<span>query → <b>${r.qt.filter(t=>!t.includes("_")).length}</b> terms</span><span>BM25 + trigram → top <b>${r.hits.length}</b></span><span>RRF fuse</span><span>độ phủ từ khoá <b>${Math.round(A.coverage*100)}%</b></span><span><b>${r.ms.toFixed(1)}</b> ms</span>`;
+  if(!r.hits.length){$("#a-out").innerHTML=`<div class="card"><div class="why bad">Không tìm thấy đoạn nào liên quan. Thử dùng thuật ngữ tiếng Anh trong syllabus.</div></div>`;return;}
+  let h=`<div class="card"><div class="row" style="justify-content:space-between"><b>Trả lời (trích từ nguồn)</b><button class="btn sm" id="a-copy">Copy prompt cho LLM</button></div>`;
+  if(A.coverage<0.6)h+=`<div class="why bad xs">⚠ Độ phủ thấp: không thấy ${A.missing.length?A.missing.map(m=>"<b>"+esc(m)+"</b>").join(", "):"đủ từ khoá"} trong các đoạn tìm được. Có thể syllabus không đề cập, hoặc chỉ khớp gần đúng — đừng coi đây là đáp án chắc chắn.</div>`;
+  h+=`<ul class="ans sm" style="margin:10px 0 0;padding-left:18px">${A.sents.map(s=>`<li>${esc(s.sent)}<span class="cite">[${s.cite}]</span></li>`).join("")}</ul></div>`;
+  h+=`<div class="card"><b class="sm">Ngữ cảnh truy xuất (top ${r.hits.length})</b>`+r.hits.map((x,j)=>`<div class="hit"><div class="row xs"><span class="cite" style="margin:0">[${j+1}]</span><span class="pill lo">${aLabel(x)}</span><b>${esc(x.title)}</b>${x.src==="notes"?`<a href="#study" data-sec="${x.ref}">mở mục học →</a>`:""}<span class="mut" style="margin-left:auto">BM25 #${x.bm?x.bm.rank:"–"} · trigram #${x.cs?x.cs.rank:"–"} · RRF ${x.rrf.toFixed(4)}</span></div><div class="tx">${aMark(x.text,x.matched)}</div></div>`).join("")+`<div class="xs mut" style="margin-top:8px">Bấm vào đoạn để xem đầy đủ.</div></div>`;
+  $("#a-out").innerHTML=h;
+  document.querySelectorAll("#a-out .hit").forEach(d=>d.onclick=e=>{if(e.target.tagName!=="A")d.classList.toggle("open");});
+  document.querySelectorAll("#a-out a[data-sec]").forEach(a=>a.onclick=e=>{e.preventDefault();aOpenSec(a.dataset.sec);});
+  $("#a-copy").onclick=()=>{const p=RAG.prompt(aLast);(navigator.clipboard?navigator.clipboard.writeText(p):Promise.reject()).then(()=>toast("Đã copy prompt (kèm ngữ cảnh)")).catch(()=>window.prompt("Copy prompt:",p));};
+}
+$("#a-go").onclick=aAsk;$("#a-q").onkeydown=e=>{if(e.key==="Enter")aAsk();};
+$("#a-pdf").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;$("#a-src").textContent="· đang đọc PDF…";
+  try{const pages=await RAG.readPdf(f,(n,t)=>{$("#a-src").textContent=`· đang đọc PDF trang ${n}/${t}…`;});aPdf=RAG.chunkPages(pages);
+    try{localStorage.setItem(PDFKEY,JSON.stringify(aPdf));}catch(err){toast("Đã nạp PDF (không lưu được cho lần sau)");}
+    aIndex();toast(`Đã nạp ${aPdf.length} đoạn từ PDF`);if($("#a-q").value.trim())aAsk();}
+  catch(err){toast("Lỗi đọc PDF: "+err.message);aIndex();}};
+$("#a-clr").onclick=()=>{aPdf=null;try{localStorage.removeItem(PDFKEY);}catch(e){}aIndex();toast("Đã bỏ PDF");if($("#a-q").value.trim())aAsk();};
 
 // ===== INIT =====
 renderStudy();qPool();

@@ -6,6 +6,7 @@ Web ôn thi ISTQB® Certified Tester – Testing with Generative AI (CT-GenAI) s
 - 42 flashcard thuật ngữ
 - 103 câu luyện tập có giải thích
 - Thi thử 40 câu / 60–75 phút, phân bố theo trọng số chương
+- Hỏi đáp syllabus bằng RAG tự viết (`rag.js`): BM25 + char-trigram, gộp RRF, trả lời kèm trích dẫn; nạp thêm PDF syllabus để tìm nguyên văn (xử lý hoàn toàn trong trình duyệt)
 - Tiến độ lưu trong trình duyệt (localStorage)
 
-Static site, 1 file `index.html`, không cần build. Host trên GitHub Pages.
+Static site (`index.html` + `data.js` + `rag.js`), không cần build. Host trên GitHub Pages.

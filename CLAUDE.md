@@ -11,6 +11,7 @@ Không có build step, không dependency. Mở `index.html` là chạy (riêng t
   - `QUIZ[]` → `{ch, lo:"2.2.5", k:"K1|K2|K3", q, o:[4 đáp án], a:index đúng, w:giải thích VI}`. Câu hỏi viết **tiếng Anh** (đề thật tiếng Anh), giải thích tiếng Việt. App tự xáo thứ tự đáp án khi load nên không cần cân bằng vị trí `a`.
 - `rag.js` — engine RAG tự viết cho tab **Hỏi đáp** (object `RAG`): chunking → BM25 + TF-IDF char-trigram → Reciprocal Rank Fusion → trả lời trích xuất kèm trích dẫn + cảnh báo khi độ phủ từ khoá < 60%. Không có LLM; nút "Copy prompt" dựng prompt đã augment.
   - Corpus mặc định: `CHAPTERS` + `GLOSSARY` (ghi chú tự viết). PDF syllabus **không** commit (bản quyền ISTQB, `docs/` bị gitignore); người dùng tự nạp PDF, được parse trong trình duyệt và cache ở `localStorage` key `ctgenai_rag_pdf`.
+- `rag.py` — bản Python CLI của `rag.js` (cùng thuật toán, cùng kết quả; stdlib only). Tự parse `data.js` bằng tokenizer nhỏ (chỉ hỗ trợ chuỗi `"…"`, key không ngoặc kép, comment `//`). Khi sửa thuật toán ở một bên, sửa bên kia cho khớp.
 - Tiến độ lưu `localStorage` key `ctgenai_v1`.
 
 ## Quy ước khi thêm câu hỏi

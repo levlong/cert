@@ -248,7 +248,11 @@ h1,h2,h3,.sec-h .t,.kw span,.opt,.card,li,.pill{overflow-wrap:anywhere}
 <section class="view" id="v-exam">
   <h1>Thi thử</h1>
   <div class="card" id="e-setup">
-    <p class="sm" style="margin:0 0 10px">40 câu phân bố theo trọng số chương (Ch1: 6 · Ch2: 14 · Ch3: 9 · Ch4: 6 · Ch5: 5). Không hiện đáp án cho tới khi nộp. Đạt khi ≥ 65% (26/40).</p>
+    <div class="row" style="margin-bottom:10px;justify-content:space-between">
+      <div class="row"><span class="sm mut">Đề:</span><select id="e-mode"><option value="rand">Ngẫu nhiên từ ngân hàng</option></select></div>
+      <div class="row"><label class="btn sm" style="margin:0">Nạp đề từ PDF<input type="file" id="e-pdf" accept="application/pdf" multiple hidden></label><button class="btn sm" id="e-pdfclr" style="display:none">Bỏ đề đã nạp</button></div>
+    </div>
+    <p class="sm" id="e-desc" style="margin:0 0 10px"></p>
     <div class="row">
       <span class="sm mut">Thời gian:</span>
       <select id="e-time"><option value="60">60 phút</option><option value="75" selected>75 phút (non-native)</option><option value="0">Không giới hạn</option></select>
@@ -305,6 +309,7 @@ h1,h2,h3,.sec-h .t,.kw span,.opt,.card,li,.pill{overflow-wrap:anywhere}
 
 <script src="data.js"></script>
 <script src="rag.js"></script>
+<script src="exams.js"></script>
 <script>
 // ===== STATE =====
 const KEY="ctgenai_v1";
@@ -400,9 +405,21 @@ document.addEventListener("keydown",e=>{if(!$("#v-quiz").classList.contains("on"
 // ===== EXAM =====
 const DIST={1:6,2:14,3:9,4:6,5:5};
 let E=null,eTimer=null;
-function eHist(){if(!S.exams.length){$("#e-hist").innerHTML="";return;}$("#e-hist").innerHTML="<h3 class='sm mut'>Lịch sử</h3><table><tr><th>#</th><th>Ngày</th><th>Điểm</th><th>%</th><th>Kết quả</th><th>Thời gian</th></tr>"+S.exams.slice().reverse().map((e,i)=>`<tr><td>${S.exams.length-i}</td><td>${new Date(e.t).toLocaleString("vi-VN")}</td><td>${e.score}/${e.total}</td><td>${Math.round(e.score/e.total*100)}%</td><td style="color:${e.score/e.total>=.65?"var(--ok)":"var(--bad)"}">${e.score/e.total>=.65?"ĐẠT":"Trượt"}</td><td>${Math.floor(e.used/60)}:${String(e.used%60).padStart(2,"0")}</td></tr>`).join("")+"</table>";}
-$("#e-start").onclick=()=>{let list=[];for(const c in DIST){const pool=QUIZ.filter(q=>q.ch==c);list=list.concat(pickN(pool,Math.min(DIST[c],pool.length)));}list=shuffle(list);
-  const mins=+$("#e-time").value;E={list,i:0,ans:Array(list.length).fill(null),flag:Array(list.length).fill(false),left:mins*60,limit:mins,start:Date.now()};
+let EXAMS=ExamPDF.load();
+function eModes(){const sel=$("#e-mode"),cur=sel.value;sel.innerHTML='<option value="rand">Ngẫu nhiên từ ngân hàng</option>'+EXAMS.map((e,i)=>`<option value="${i}">${esc(e.title)} · ${e.qs.length} câu · ${e.pts} điểm</option>`).join("");sel.value=[...sel.options].some(o=>o.value===cur)?cur:"rand";$("#e-pdfclr").style.display=EXAMS.length?"":"none";eDesc();}
+function eDesc(){const m=$("#e-mode").value;if(m==="rand"){$("#e-desc").innerHTML="40 câu lấy ngẫu nhiên từ ngân hàng luyện tập, phân bố theo trọng số chương (Ch1: 6 · Ch2: 14 · Ch3: 9 · Ch4: 6 · Ch5: 5). Không hiện đáp án cho tới khi nộp. Đạt khi ≥ 65% (26/40)."+(EXAMS.length?"":" <span class='mut'>Có file PDF đề thi thử (dạng “Đề N – Giải thích chi tiết”)? Bấm <b>Nạp đề từ PDF</b> để thi đúng đề đó; file được đọc ngay trong trình duyệt, không gửi đi đâu.</span>");return;}
+  const e=EXAMS[+m],k={};e.qs.forEach(q=>k[q.k]=(k[q.k]||0)+1);
+  $("#e-desc").innerHTML=`<b>${esc(e.title)}</b>: ${e.qs.length} câu · ${e.pts} điểm · đạt ${Math.ceil(e.pts*.65)}/${e.pts} · K1 ${k.K1||0} · K2 ${k.K2||0} · K3 ${k.K3||0}${k.K3?" (2 điểm/câu)":""}. Thứ tự câu và đáp án giữ nguyên như đề gốc.${e.warn&&e.warn.length?` <span style="color:var(--acc2)">⚠ ${e.warn.length} câu không đọc được: ${esc(e.warn.join("; "))}</span>`:""}`;}
+$("#e-mode").onchange=eDesc;eModes();
+$("#e-pdf").onchange=async ev=>{const files=[...ev.target.files];ev.target.value="";if(!files.length)return;let ok=0;
+  for(const f of files){try{$("#e-desc").textContent=`Đang đọc ${f.name}…`;const ex=await ExamPDF.addFile(f,EXAMS);ok++;toast(`${ex.title}: ${ex.qs.length} câu`);}catch(err){toast(err.message);}}
+  if(ok){if(!ExamPDF.save(EXAMS))toast("Đã nạp nhưng không lưu được cho lần sau (bộ nhớ đầy)");$("#e-mode").value=String(EXAMS.length-1);}eModes();};
+$("#e-pdfclr").onclick=()=>{EXAMS=[];ExamPDF.save(EXAMS);eModes();toast("Đã bỏ các đề đã nạp");};
+function eHist(){if(!S.exams.length){$("#e-hist").innerHTML="";return;}$("#e-hist").innerHTML="<h3 class='sm mut'>Lịch sử</h3><table><tr><th>#</th><th>Ngày</th><th>Đề</th><th>Điểm</th><th>%</th><th>Kết quả</th><th>Thời gian</th></tr>"+S.exams.slice().reverse().map((e,i)=>`<tr><td>${S.exams.length-i}</td><td>${new Date(e.t).toLocaleString("vi-VN")}</td><td>${e.exam?esc(typeof e.exam==="number"?"Đề "+e.exam:e.exam):"Ngẫu nhiên"}</td><td>${e.score}/${e.total}</td><td>${Math.round(e.score/e.total*100)}%</td><td style="color:${e.score/e.total>=.65?"var(--ok)":"var(--bad)"}">${e.score/e.total>=.65?"ĐẠT":"Trượt"}</td><td>${Math.floor(e.used/60)}:${String(e.used%60).padStart(2,"0")}</td></tr>`).join("")+"</table>";}
+$("#e-start").onclick=()=>{const m=$("#e-mode").value;let list=[],exam=null;
+  if(m==="rand"){for(const c in DIST){const pool=QUIZ.filter(q=>q.ch==c);list=list.concat(pickN(pool,Math.min(DIST[c],pool.length)));}list=shuffle(list);}
+  else{exam=EXAMS[+m];list=exam.qs;}
+  const mins=+$("#e-time").value;E={list,exam,i:0,ans:Array(list.length).fill(null),flag:Array(list.length).fill(false),left:mins*60,limit:mins,start:Date.now()};
   $("#e-setup").style.display="none";$("#e-done").style.display="none";$("#e-run").style.display="block";eShow();clearInterval(eTimer);eTimer=setInterval(eTick,1000);eTick();};
 function eTick(){if(!E)return;if(E.limit===0){$("#e-timer").textContent="∞";return;}E.left--;const m=Math.floor(E.left/60),s=E.left%60;$("#e-timer").textContent=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;$("#e-timer").classList.toggle("low",E.left<300);if(E.left<=0){toast("Hết giờ — tự động nộp");eSubmit();}}
 function eGrid(){$("#e-grid").innerHTML=E.list.map((_,i)=>`<button class="${E.ans[i]!==null?"ans":""} ${E.flag[i]?"flag":""} ${i===E.i?"cur":""}" data-i="${i}">${i+1}</button>`).join("");document.querySelectorAll("#e-grid button").forEach(b=>b.onclick=()=>{E.i=+b.dataset.i;eShow();});$("#e-cnt").textContent=`${E.ans.filter(a=>a!==null).length}/${E.list.length} đã trả lời`;}
@@ -412,13 +429,13 @@ function eShow(){const q=E.list[E.i];$("#e-prog").textContent=`Câu ${E.i+1}/${E
 $("#e-prev").onclick=()=>{E.i--;eShow();};$("#e-next").onclick=()=>{E.i++;eShow();};
 $("#e-flag").onclick=()=>{E.flag[E.i]=!E.flag[E.i];eShow();};
 $("#e-submit").onclick=()=>{const un=E.ans.filter(a=>a===null).length;if(un&&!$("#e-submit").dataset.c){$("#e-submit").dataset.c=1;$("#e-submit").textContent=`Còn ${un} câu trống — nộp luôn?`;setTimeout(()=>{delete $("#e-submit").dataset.c;$("#e-submit").textContent="Nộp bài";},3000);return;}eSubmit();};
-function eSubmit(){clearInterval(eTimer);const used=Math.round((Date.now()-E.start)/1000);let sc=0;E.list.forEach((q,i)=>{const ok=E.ans[i]===q.a;if(ok)sc++;const st=S.stats[q.id]||{r:0,w:0};if(ok)st.r++;else st.w++;st.last=ok;S.stats[q.id]=st;});
-  S.exams.push({t:Date.now(),score:sc,total:E.list.length,used});save();$("#e-run").style.display="none";$("#e-done").style.display="block";const p=Math.round(sc/E.list.length*100);const pass=sc/E.list.length>=.65;
+function eSubmit(){clearInterval(eTimer);const used=Math.round((Date.now()-E.start)/1000);let sc=0,tot=0,nOk=0;E.list.forEach((q,i)=>{const ok=E.ans[i]===q.a;const pts=q.pts||1;tot+=pts;if(ok){sc+=pts;nOk++;}if(!E.exam){const st=S.stats[q.id]||{r:0,w:0};if(ok)st.r++;else st.w++;st.last=ok;S.stats[q.id]=st;}});
+  S.exams.push({t:Date.now(),score:sc,total:tot,used,exam:E.exam?E.exam.id:0});save();$("#e-run").style.display="none";$("#e-done").style.display="block";const p=Math.round(sc/tot*100);const pass=sc/tot>=.65;
   const byCh={};E.list.forEach((q,i)=>{byCh[q.ch]=byCh[q.ch]||{r:0,t:0};byCh[q.ch].t++;if(E.ans[i]===q.a)byCh[q.ch].r++;});
-  $("#e-done").innerHTML=`<div class="card" style="text-align:center"><div class="mut sm">Kết quả thi thử</div><div class="stat" style="font-size:48px;color:${pass?"var(--ok)":"var(--bad)"}">${p}%</div><div>${sc}/${E.list.length} câu · <b style="color:${pass?"var(--ok)":"var(--bad)"}">${pass?"ĐẠT ✓":"CHƯA ĐẠT (cần ≥ 65%)"}</b> · ${Math.floor(used/60)} phút ${used%60}s</div>
+  $("#e-done").innerHTML=`<div class="card" style="text-align:center"><div class="mut sm">Kết quả thi thử${E.exam?" · "+esc(E.exam.title):""}</div><div class="stat" style="font-size:48px;color:${pass?"var(--ok)":"var(--bad)"}">${p}%</div><div>${sc}/${tot} điểm · ${nOk}/${E.list.length} câu đúng · <b style="color:${pass?"var(--ok)":"var(--bad)"}">${pass?"ĐẠT ✓":"CHƯA ĐẠT (cần ≥ 65%)"}</b> · ${Math.floor(used/60)} phút ${used%60}s</div>
   <div class="row" style="justify-content:center;margin-top:10px">${Object.keys(byCh).map(c=>`<span class="pill lo">Ch${c}: ${byCh[c].r}/${byCh[c].t}</span>`).join(" ")}</div>
   <div class="row" style="justify-content:center;margin-top:14px"><button class="btn p" id="e-again">Thi lại</button><button class="btn" id="e-tohome">Về tổng quan</button></div></div>
-  <h2>Xem lại từng câu</h2>${E.list.map((q,i)=>{const ok=E.ans[i]===q.a;return `<div class="card" style="border-color:${ok?"rgba(34,197,94,.4)":"rgba(239,68,68,.4)"}"><div class="row xs" style="margin-bottom:6px"><b>${i+1}.</b><span class="pill lo">GenAI-${q.lo}</span><span class="pill ${q.k}">${q.k}</span><span style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"✓ Đúng":E.ans[i]===null?"— Bỏ trống":"✗ Sai"}</span></div><div style="font-weight:600;margin-bottom:8px">${esc(q.q)}</div>${q.o.map((o,k)=>`<div class="opt ${k===q.a?"ok":k===E.ans[i]?"bad":""}" style="cursor:default;padding:8px 12px;margin:4px 0"><b class="l">${L[k]}</b>${esc(o)}</div>`).join("")}<div class="why ${ok?"":"bad"}">${q.w}</div></div>`;}).join("")}`;
+  <h2>Xem lại từng câu</h2>${E.list.map((q,i)=>{const ok=E.ans[i]===q.a;return `<div class="card" style="border-color:${ok?"rgba(34,197,94,.4)":"rgba(239,68,68,.4)"}"><div class="row xs" style="margin-bottom:6px"><b>${i+1}.</b><span class="pill lo">GenAI-${esc(String(q.lo))}</span><span class="pill ${q.k}">${q.k}</span>${q.pts>1?`<span class="pill lo">${q.pts} điểm</span>`:""}<span style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"✓ Đúng":E.ans[i]===null?"— Bỏ trống":"✗ Sai"}</span></div><div style="font-weight:600;margin-bottom:8px">${esc(q.q)}</div>${q.o.map((o,k)=>`<div class="opt ${k===q.a?"ok":k===E.ans[i]?"bad":""}" style="cursor:default;padding:8px 12px;margin:4px 0"><b class="l">${L[k]}</b>${esc(o)}</div>`).join("")}<div class="why ${ok?"":"bad"}">${E.exam?esc(q.w):q.w}${q.ref?`<div class="xs mut" style="margin-top:6px">${esc(q.ref)}</div>`:""}</div></div>`;}).join("")}`;
   $("#e-again").onclick=()=>{$("#e-done").style.display="none";$("#e-setup").style.display="block";eHist();};$("#e-tohome").onclick=()=>{$("#e-done").style.display="none";$("#e-setup").style.display="block";show("home");};window.scrollTo(0,0);}
 
 // ===== WRONG =====

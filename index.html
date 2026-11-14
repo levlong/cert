@@ -117,7 +117,8 @@ label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size
 .chips button:hover{color:var(--acc);border-color:var(--acc)}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
 .toast.on{opacity:1}
-@media(max-width:600px){.hd{padding:10px}nav button{padding:6px 9px;font-size:12px}.stat{font-size:22px}}
+html,body{overflow-x:clip}
+@media(max-width:600px){.hd{padding:10px}nav button{padding:6px 9px;font-size:12px}.stat{font-size:22px}.wrap input,.wrap select,.wrap textarea{font-size:16px}}
 </style>
 </head>
 <body>
@@ -430,7 +431,7 @@ function aIndex(){const ix=RAG.build(RAG.notesCorpus().concat(aPdf||[]));const n
   $("#a-clr").style.display=np?"":"none";aReady=true;}
 function aInit(){if(!aReady)aIndex();
   if(!$("#a-chips").childElementCount)["RAG là gì?","context window","few-shot vs chain-of-thought","How to mitigate hallucinations?","LLMOps","agent autonomy levels"].forEach(t=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>{$("#a-q").value=t;aAsk();};$("#a-chips").appendChild(b);});
-  setTimeout(()=>$("#a-q").focus(),50);}
+  if(matchMedia("(hover:hover)").matches)setTimeout(()=>$("#a-q").focus(),50);}
 function aLabel(h){return h.src==="pdf"?`Syllabus §${h.ref} · tr.${h.page}`:h.src==="glossary"?"Glossary":`Ghi chú §${h.ref}`;}
 // Tô sáng từ khớp: so trên bản bỏ dấu (cùng độ dài với bản gốc NFC) rồi cắt đúng vị trí trên bản gốc.
 function aMark(text,terms){const t=esc(text.normalize("NFC"));if(!terms.length)return t;

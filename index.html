@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CT-GenAI Study Lab — ISTQB Testing with Generative AI v1.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0f14;--bg2:#121820;--bg3:#1a222d;--line:#243040;--tx:#e6edf3;--mut:#8b9bb0;--acc:#2dd4bf;--acc2:#f59e0b;--ok:#22c55e;--bad:#ef4444;--k1:#60a5fa;--k2:#a78bfa;--k3:#f472b6;--r:12px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--acc)}
+b{color:#fff}
+u{text-decoration-color:var(--acc2)}
+.wrap{max-width:1080px;margin:0 auto;padding:16px}
+header{position:sticky;top:0;z-index:10;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:14px;padding:12px 16px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
+.logo{font-weight:800;font-size:17px;letter-spacing:-.3px}
+.logo span{color:var(--acc)}
+.sub{color:var(--mut);font-size:12px}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav button{background:none;border:1px solid transparent;color:var(--mut);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-weight:600;font-size:13px}
+nav button:hover{color:var(--tx);background:var(--bg2)}
+nav button.on{color:var(--acc);background:var(--bg2);border-color:var(--line)}
+.view{display:none}.view.on{display:block}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+h1{font-size:22px;margin:4px 0 14px;letter-spacing:-.4px}
+h2{font-size:17px;margin:0 0 10px}
+h3{font-size:15px;margin:0 0 6px}
+.mut{color:var(--mut)}
+.sm{font-size:13px}
+.xs{font-size:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px;font-family:"JetBrains Mono",monospace}
+.K1{background:rgba(96,165,250,.15);color:var(--k1)}.K2{background:rgba(167,139,250,.15);color:var(--k2)}.K3{background:rgba(244,114,182,.15);color:var(--k3)}
+.pill.lo{background:var(--bg3);color:var(--mut)}
+.btn{background:var(--bg3);border:1px solid var(--line);color:var(--tx);padding:9px 14px;border-radius:9px;cursor:pointer;font:inherit;font-weight:600;font-size:13px;transition:.15s}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn.p{background:var(--acc);color:#04221f;border-color:var(--acc)}
+.btn.p:hover{filter:brightness(1.1);color:#04221f}
+.btn.w{background:var(--acc2);color:#2a1800;border-color:var(--acc2)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .4s}
+.bar i.a{background:var(--acc2)}
+.stat{font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat small{font-size:13px;color:var(--mut);font-weight:500;letter-spacing:0}
+/* chapters */
+.chtab{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chtab button{background:var(--bg2);border:1px solid var(--line);color:var(--mut);padding:8px 12px;border-radius:9px;cursor:pointer;font:inherit;font-size:13px;font-weight:600}
+.chtab button.on{border-color:var(--acc);color:var(--acc)}
+.sec{border-left:3px solid var(--line);padding-left:14px;margin-bottom:14px}
+.sec.done{border-left-color:var(--ok)}
+.sec-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;padding:6px 0}
+.sec-h .t{font-weight:700;font-size:15px}
+.sec-b{display:none;padding:4px 0 10px}
+.sec.open .sec-b{display:block}
+.sec ul{margin:6px 0 10px;padding-left:18px}
+.sec li{margin:5px 0}
+.tip{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:9px;padding:10px 12px;font-size:13px;margin:8px 0}
+.tip::before{content:"💡 Mẹo thi: ";font-weight:700;color:var(--acc2)}
+.kw{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.kw span{background:var(--bg3);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--mut)}
+/* flashcards */
+.fc{perspective:1200px;max-width:640px;margin:0 auto}
+.fc-in{position:relative;min-height:260px;transition:transform .5s;transform-style:preserve-3d;cursor:pointer}
+.fc.flip .fc-in{transform:rotateY(180deg)}
+.fc-f,.fc-k{position:absolute;inset:0;backface-visibility:hidden;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.fc-k{transform:rotateY(180deg);border-color:var(--acc)}
+.fc-f .term{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.fc-k .def{font-size:16px}
+.fc-k .vi{color:var(--acc);margin-top:12px;font-size:14px}
+/* quiz */
+.q{font-size:17px;font-weight:600;margin:6px 0 16px;line-height:1.5}
+.opt{display:block;width:100%;text-align:left;background:var(--bg3);border:1px solid var(--line);color:var(--tx);padding:12px 14px;border-radius:10px;margin:8px 0;cursor:pointer;font:inherit;font-size:14px;transition:.15s}
+.opt:hover{border-color:var(--acc)}
+.opt.sel{border-color:var(--acc2);background:rgba(245,158,11,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(34,197,94,.12)}
+.opt.bad{border-color:var(--bad);background:rgba(239,68,68,.12)}
+.opt:disabled{cursor:default}
+.opt b.l{display:inline-block;width:22px;color:var(--mut)}
+.why{background:var(--bg3);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:14px;border-left:3px solid var(--acc)}
+.why.bad{border-left-color:var(--bad)}
+.navgrid{display:flex;gap:5px;flex-wrap:wrap}
+.navgrid button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg3);color:var(--mut);cursor:pointer;font:inherit;font-size:12px;font-weight:600}
+.navgrid button.ans{background:rgba(45,212,191,.2);color:var(--acc);border-color:var(--acc)}
+.navgrid button.flag{border-color:var(--acc2);color:var(--acc2)}
+.navgrid button.cur{outline:2px solid #fff}
+.navgrid button.r{background:rgba(34,197,94,.2);color:var(--ok);border-color:var(--ok)}
+.navgrid button.x{background:rgba(239,68,68,.2);color:var(--bad);border-color:var(--bad)}
+.timer{font-family:"JetBrains Mono",monospace;font-size:20px;font-weight:700}
+.timer.low{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px}
+select,input[type=number]{background:var(--bg3);border:1px solid var(--line);color:var(--tx);padding:8px 10px;border-radius:8px;font:inherit}
+label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size:13px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
+.toast.on{opacity:1}
+@media(max-width:600px){.hd{padding:10px}nav button{padding:6px 9px;font-size:12px}.stat{font-size:22px}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <div><div class="logo">CT-<span>GenAI</span> Study Lab</div><div class="sub">ISTQB® Testing with Generative AI · Syllabus v1.1</div></div>
+  <nav id="nav">
+    <button data-v="home">Tổng quan</button>
+    <button data-v="study">Học</button>
+    <button data-v="cards">Flashcards</button>
+    <button data-v="quiz">Luyện tập</button>
+    <button data-v="exam">Thi thử</button>
+    <button data-v="wrong">Câu sai</button>
+  </nav>
+</div></header>
+
+<div class="wrap">
+<!-- HOME -->
+<section class="view" id="v-home">
+  <h1>Tiến độ ôn thi</h1>
+  <div class="grid g3">
+    <div class="card"><div class="mut sm">Mục đã học</div><div class="stat" id="h-sec">0<small> / 33</small></div><div class="bar"><i id="h-secbar"></i></div></div>
+    <div class="card"><div class="mut sm">Flashcard đã thuộc</div><div class="stat" id="h-fc">0<small> / 0</small></div><div class="bar"><i id="h-fcbar"></i></div></div>
+    <div class="card"><div class="mut sm">Độ chính xác luyện tập</div><div class="stat" id="h-acc">—</div><div class="bar"><i id="h-accbar" class="a"></i></div></div>
+    <div class="card"><div class="mut sm">Thi thử gần nhất</div><div class="stat" id="h-exam">—</div><div class="xs mut" id="h-examsub">Chưa thi lần nào</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h2>Thông tin kỳ thi</h2>
+      <table>
+        <tr><td class="mut">Điều kiện</td><td>Phải có chứng chỉ <b>ISTQB Foundation Level</b></td></tr>
+        <tr><td class="mut">Số câu</td><td><b>40</b> câu trắc nghiệm</td></tr>
+        <tr><td class="mut">Thời gian</td><td><b>60 phút</b> (75 phút nếu tiếng Anh không phải ngôn ngữ mẹ đẻ — <b>mày được 75</b>)</td></tr>
+        <tr><td class="mut">Đạt</td><td><b>65%</b> tổng điểm</td></tr>
+        <tr><td class="mut">Nội dung thi</td><td>Toàn bộ 5 chương. <b>Không thi</b>: Introduction (ch.0), Hands-on Objectives, Appendices. Keyword dưới mỗi chương phải nhớ ở K1.</td></tr>
+        <tr><td class="mut">K-level</td><td><span class="pill K1">K1</span> Remember · <span class="pill K2">K2</span> Understand · <span class="pill K3">K3</span> Apply</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Trọng số theo chương (phút giảng dạy)</h2>
+      <div id="h-weights"></div>
+      <p class="xs mut" style="margin:10px 0 0">Thời lượng dạy phản ánh trọng số đề. Chương 2 (prompt engineering) chiếm gần một nửa — ưu tiên cày trước, đặc biệt các LO K3.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Tiến độ theo chương</h2>
+    <div id="h-ch"></div>
+  </div>
+  <div class="card">
+    <h2>Cách dùng gợi ý</h2>
+    <ol class="sm" style="margin:0;padding-left:18px;line-height:1.8">
+      <li><b>Học</b>: đọc từng mục, đánh dấu đã học. Mỗi mục có LO + K-level + mẹo thi.</li>
+      <li><b>Flashcards</b>: cày 42 thuật ngữ cho tới khi "thuộc" hết — câu K1 về keyword rất dễ ăn điểm.</li>
+      <li><b>Luyện tập</b>: làm theo chương, đọc giải thích từng câu. Câu sai tự vào tab <b>Câu sai</b>.</li>
+      <li><b>Thi thử</b>: 40 câu / 60 phút, phân bố theo trọng số chương. Mục tiêu ổn định ≥ 80% rồi hãy đi thi.</li>
+    </ol>
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="h-reset">Xoá toàn bộ tiến độ</button><span class="xs mut">Tiến độ lưu trên trình duyệt này.</span></div>
+  </div>
+</section>
+
+<!-- STUDY -->
+<section class="view" id="v-study">
+  <h1>Ghi chú theo syllabus</h1>
+  <div class="chtab" id="s-tabs"></div>
+  <div id="s-body"></div>
+</section>
+
+<!-- CARDS -->
+<section class="view" id="v-cards">
+  <h1>Flashcards — thuật ngữ GenAI</h1>
+  <div class="row" style="margin-bottom:14px">
+    <label class="ck"><input type="checkbox" id="fc-only"> Chỉ thẻ chưa thuộc</label>
+    <button class="btn sm" id="fc-shuf">Xáo thẻ</button>
+    <span class="mut sm" id="fc-cnt"></span>
+  </div>
+  <div class="fc" id="fc"><div class="fc-in">
+    <div class="fc-f"><div class="xs mut" style="margin-bottom:10px">THUẬT NGỮ · bấm để lật</div><div class="term" id="fc-term"></div></div>
+    <div class="fc-k"><div class="def" id="fc-def"></div><div class="vi" id="fc-vi"></div></div>
+  </div></div>
+  <div class="row" style="justify-content:center;margin-top:16px">
+    <button class="btn" id="fc-prev">← Trước</button>
+    <button class="btn" id="fc-no" style="border-color:var(--bad);color:var(--bad)">Chưa thuộc</button>
+    <button class="btn p" id="fc-yes">Thuộc rồi ✓</button>
+    <button class="btn" id="fc-next">Sau →</button>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section class="view" id="v-quiz">
+  <h1>Luyện tập</h1>
+  <div class="card" id="q-setup">
+    <div class="row">
+      <span class="sm mut">Chương:</span>
+      <label class="ck"><input type="checkbox" class="q-ch" value="1" checked> 1</label>
+      <label class="ck"><input type="checkbox" class="q-ch" value="2" checked> 2</label>
+      <label class="ck"><input type="checkbox" class="q-ch" value="3" checked> 3</label>
+      <label class="ck"><input type="checkbox" class="q-ch" value="4" checked> 4</label>
+      <label class="ck"><input type="checkbox" class="q-ch" value="5" checked> 5</label>
+      <span class="sm mut" style="margin-left:10px">Số câu:</span>
+      <select id="q-n"><option>10</option><option selected>15</option><option>20</option><option value="999">Tất cả</option></select>
+      <label class="ck"><input type="checkbox" id="q-weak"> Ưu tiên câu hay sai</label>
+      <button class="btn p" id="q-start">Bắt đầu</button>
+    </div>
+    <div class="xs mut" style="margin-top:8px" id="q-pool"></div>
+  </div>
+  <div id="q-run" style="display:none">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="mut sm" id="q-prog"></span><span id="q-meta"></span></div>
+    <div class="bar" style="margin-bottom:14px"><i id="q-bar"></i></div>
+    <div class="card">
+      <div class="q" id="q-text"></div>
+      <div id="q-opts"></div>
+      <div id="q-why"></div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="btn sm" id="q-quit">Dừng</button>
+        <button class="btn p" id="q-next" disabled>Câu tiếp →</button>
+      </div>
+    </div>
+  </div>
+  <div id="q-done" style="display:none"></div>
+</section>
+
+<!-- EXAM -->
+<section class="view" id="v-exam">
+  <h1>Thi thử</h1>
+  <div class="card" id="e-setup">
+    <p class="sm" style="margin:0 0 10px">40 câu phân bố theo trọng số chương (Ch1: 6 · Ch2: 14 · Ch3: 9 · Ch4: 6 · Ch5: 5). Không hiện đáp án cho tới khi nộp. Đạt khi ≥ 65% (26/40).</p>
+    <div class="row">
+      <span class="sm mut">Thời gian:</span>
+      <select id="e-time"><option value="60">60 phút</option><option value="75" selected>75 phút (non-native)</option><option value="0">Không giới hạn</option></select>
+      <button class="btn p" id="e-start">Bắt đầu thi</button>
+    </div>
+    <div id="e-hist" style="margin-top:14px"></div>
+  </div>
+  <div id="e-run" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="timer" id="e-timer">--:--</div>
+        <div class="row"><span class="mut sm" id="e-cnt"></span><button class="btn w sm" id="e-submit">Nộp bài</button></div>
+      </div>
+      <div class="navgrid" id="e-grid" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><span class="mut sm" id="e-prog"></span><button class="btn sm" id="e-flag">⚑ Đánh dấu xem lại</button></div>
+      <div class="q" id="e-text"></div>
+      <div id="e-opts"></div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="btn" id="e-prev">← Trước</button>
+        <button class="btn" id="e-next">Sau →</button>
+      </div>
+    </div>
+  </div>
+  <div id="e-done" style="display:none"></div>
+</section>
+
+<!-- WRONG -->
+<section class="view" id="v-wrong">
+  <h1>Câu hay sai</h1>
+  <div class="card"><div class="row" style="justify-content:space-between"><span class="sm mut" id="w-cnt"></span><div class="row"><button class="btn p sm" id="w-retry">Luyện lại các câu này</button><button class="btn sm" id="w-clear">Xoá danh sách</button></div></div></div>
+  <div id="w-list"></div>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+// ===== STATE =====
+const KEY="ctgenai_v1";
+let S={sec:{},fc:{},stats:{},exams:[]};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+QUIZ.forEach((q,i)=>{q.id=i;const idx=[0,1,2,3];for(let k=3;k>0;k--){const j=Math.floor(Math.random()*(k+1));[idx[k],idx[j]]=[idx[j],idx[k]];}q.o=idx.map(k=>q.o[k]);q.a=idx.indexOf(q.a);});
+const TOTAL_SEC=CHAPTERS.reduce((a,c)=>a+c.sections.length,0);
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const L="ABCD";
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1800);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickN(a,n){return shuffle(a).slice(0,n);}
+function accOf(st){const t=(st.r||0)+(st.w||0);return t?Math.round(st.r/t*100):null;}
+
+// ===== NAV =====
+const VIEWS=["home","study","cards","quiz","exam","wrong"];
+function show(v){VIEWS.forEach(x=>{$("#v-"+x).classList.toggle("on",x===v);});document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(v==="home")renderHome();if(v==="wrong")renderWrong();if(v==="cards")fcRender();if(v==="quiz")qPool();if(v==="exam")eHist();window.scrollTo(0,0);try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v);}catch(e){}}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>show(b.dataset.v));
+window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(VIEWS.includes(h))show(h);});
+
+// ===== HOME =====
+function renderHome(){
+  const done=Object.values(S.sec).filter(Boolean).length;
+  $("#h-sec").innerHTML=done+"<small> / "+TOTAL_SEC+"</small>";$("#h-secbar").style.width=(done/TOTAL_SEC*100)+"%";
+  const fk=Object.values(S.fc).filter(Boolean).length;
+  $("#h-fc").innerHTML=fk+"<small> / "+GLOSSARY.length+"</small>";$("#h-fcbar").style.width=(fk/GLOSSARY.length*100)+"%";
+  let r=0,w=0;Object.values(S.stats).forEach(s=>{r+=s.r||0;w+=s.w||0;});
+  const acc=r+w?Math.round(r/(r+w)*100):null;
+  $("#h-acc").innerHTML=acc===null?"—":acc+"%<small> ("+(r+w)+" câu)</small>";$("#h-accbar").style.width=(acc||0)+"%";
+  if(S.exams.length){const e=S.exams[S.exams.length-1];$("#h-exam").innerHTML=e.score+"<small> / "+e.total+" · "+Math.round(e.score/e.total*100)+"%</small>";$("#h-examsub").textContent=(e.score/e.total>=.65?"ĐẠT ✓":"Chưa đạt")+" · "+new Date(e.t).toLocaleString("vi-VN")+" · "+S.exams.length+" lần thi";}
+  const tot=CHAPTERS.reduce((a,c)=>a+c.mins,0);
+  $("#h-weights").innerHTML=CHAPTERS.map(c=>`<div style="margin:6px 0"><div class="row xs" style="justify-content:space-between"><span>Ch${c.n} · ${c.vi}</span><span class="mut">${c.mins} phút · ${Math.round(c.mins/tot*100)}%</span></div><div class="bar"><i style="width:${c.mins/tot*100}%"></i></div></div>`).join("");
+  $("#h-ch").innerHTML="<table><tr><th>Chương</th><th>Mục đã học</th><th>Luyện tập</th><th>Độ chính xác</th></tr>"+CHAPTERS.map(c=>{
+    const d=c.sections.filter(s=>S.sec[s.id]).length;let r=0,w=0;QUIZ.filter(q=>q.ch===c.n).forEach(q=>{const s=S.stats[q.id];if(s){r+=s.r||0;w+=s.w||0;}});const a=r+w?Math.round(r/(r+w)*100):null;
+    return `<tr><td><b>Ch${c.n}</b> ${c.title}</td><td>${d}/${c.sections.length}</td><td>${r+w} câu</td><td>${a===null?"—":`<span style="color:${a>=80?"var(--ok)":a>=65?"var(--acc2)":"var(--bad)"}">${a}%</span>`}</td></tr>`;}).join("")+"</table>";
+}
+$("#h-reset").onclick=()=>{if($("#h-reset").dataset.c){S={sec:{},fc:{},stats:{},exams:[]};save();renderHome();toast("Đã xoá tiến độ");$("#h-reset").textContent="Xoá toàn bộ tiến độ";delete $("#h-reset").dataset.c;}else{$("#h-reset").dataset.c=1;$("#h-reset").textContent="Bấm lần nữa để xác nhận xoá";setTimeout(()=>{delete $("#h-reset").dataset.c;$("#h-reset").textContent="Xoá toàn bộ tiến độ";},3000);}};
+
+// ===== STUDY =====
+let curCh=1;
+function renderStudy(){
+  $("#s-tabs").innerHTML=CHAPTERS.map(c=>{const d=c.sections.filter(s=>S.sec[s.id]).length;return `<button class="${c.n===curCh?"on":""}" data-c="${c.n}">Ch${c.n} <span class="xs mut">${d}/${c.sections.length}</span></button>`;}).join("");
+  document.querySelectorAll("#s-tabs button").forEach(b=>b.onclick=()=>{curCh=+b.dataset.c;renderStudy();});
+  const c=CHAPTERS.find(x=>x.n===curCh);
+  $("#s-body").innerHTML=`<div class="card"><h2>Chương ${c.n}: ${c.title}</h2><div class="xs mut">${c.mins} phút · ${c.sections.length} mục · ${QUIZ.filter(q=>q.ch===c.n).length} câu luyện tập</div>
+  <div class="sm mut" style="margin-top:8px">Keywords phải nhớ (K1):</div><div class="kw">${c.keywords.map(k=>`<span>${k}</span>`).join("")}</div>
+  ${c.sections.map(s=>`<div class="sec ${S.sec[s.id]?"done":""}" id="sec-${s.id.replace(/\./g,"_")}">
+    <div class="sec-h" data-s="${s.id}"><span class="pill lo">${s.lo}</span><span class="pill ${s.k}">${s.k}</span><span class="t">${s.id} ${s.title}</span><span class="mut xs" style="margin-left:auto">${S.sec[s.id]?"✓ đã học":"▸"}</span></div>
+    <div class="sec-b"><ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul><div class="tip">${s.tip}</div>
+    <div class="row"><button class="btn sm ${S.sec[s.id]?"":"p"}" data-done="${s.id}">${S.sec[s.id]?"Bỏ đánh dấu":"Đánh dấu đã học ✓"}</button><button class="btn sm" data-q="${s.id}">Luyện ${QUIZ.filter(q=>q.lo===s.id).length} câu mục này</button></div></div>
+  </div>`).join("")}</div>`;
+  document.querySelectorAll(".sec-h").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
+  document.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>{S.sec[b.dataset.done]=!S.sec[b.dataset.done];save();const open=[...document.querySelectorAll(".sec.open")].map(x=>x.id);renderStudy();open.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add("open");});});
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{startQuiz(QUIZ.filter(q=>q.lo===b.dataset.q));show("quiz");});
+}
+
+// ===== FLASHCARDS =====
+let fcOrder=GLOSSARY.map((_,i)=>i),fcI=0;
+function fcList(){return $("#fc-only").checked?fcOrder.filter(i=>!S.fc[i]):fcOrder;}
+function fcRender(){const l=fcList();if(!l.length){$("#fc-term").textContent="🎉 Thuộc hết rồi!";$("#fc-def").textContent="";$("#fc-vi").textContent="";$("#fc-cnt").textContent="0 thẻ";return;}if(fcI>=l.length)fcI=0;const g=GLOSSARY[l[fcI]];$("#fc").classList.remove("flip");$("#fc-term").textContent=g[0];$("#fc-def").textContent=g[1];$("#fc-vi").textContent=g[2];$("#fc-cnt").textContent=`Thẻ ${fcI+1}/${l.length} · thuộc ${Object.values(S.fc).filter(Boolean).length}/${GLOSSARY.length}`+(S.fc[l[fcI]]?" · ✓":"");}
+$("#fc").onclick=()=>$("#fc").classList.toggle("flip");
+$("#fc-next").onclick=()=>{fcI=(fcI+1)%Math.max(1,fcList().length);fcRender();};
+$("#fc-prev").onclick=()=>{const n=Math.max(1,fcList().length);fcI=(fcI-1+n)%n;fcRender();};
+$("#fc-yes").onclick=()=>{const l=fcList();if(!l.length)return;S.fc[l[fcI]]=true;save();if(!$("#fc-only").checked)fcI=(fcI+1)%l.length;fcRender();};
+$("#fc-no").onclick=()=>{const l=fcList();if(!l.length)return;S.fc[l[fcI]]=false;save();fcI=(fcI+1)%l.length;fcRender();};
+$("#fc-shuf").onclick=()=>{fcOrder=shuffle(fcOrder);fcI=0;fcRender();};
+$("#fc-only").onchange=()=>{fcI=0;fcRender();};
+document.addEventListener("keydown",e=>{if(!$("#v-cards").classList.contains("on"))return;if(e.key===" "){e.preventDefault();$("#fc").click();}if(e.key==="ArrowRight")$("#fc-next").click();if(e.key==="ArrowLeft")$("#fc-prev").click();});
+
+// ===== QUIZ =====
+let Q={list:[],i:0,r:0,ans:[]};
+function qPool(){const chs=[...document.querySelectorAll(".q-ch:checked")].map(c=>+c.value);$("#q-pool").textContent=`Ngân hàng: ${QUIZ.filter(q=>chs.includes(q.ch)).length} câu khả dụng · tổng ${QUIZ.length} câu`;}
+document.querySelectorAll(".q-ch").forEach(c=>c.onchange=qPool);
+$("#q-start").onclick=()=>{const chs=[...document.querySelectorAll(".q-ch:checked")].map(c=>+c.value);let pool=QUIZ.filter(q=>chs.includes(q.ch));if(!pool.length){toast("Chọn ít nhất 1 chương");return;}const n=+$("#q-n").value;
+  if($("#q-weak").checked){pool=pool.map(q=>{const s=S.stats[q.id]||{};const w=(s.w||0)*3+1-(s.r||0)*.5;return {q,w:Math.max(.2,w)+Math.random()};}).sort((a,b)=>b.w-a.w).map(x=>x.q).slice(0,n);pool=shuffle(pool);}else pool=pickN(pool,n);
+  startQuiz(pool);};
+function startQuiz(list){if(!list.length){toast("Không có câu nào");return;}Q={list:shuffle(list),i:0,r:0,ans:[]};$("#q-setup").style.display="none";$("#q-done").style.display="none";$("#q-run").style.display="block";qShow();}
+function qShow(){const q=Q.list[Q.i];$("#q-prog").textContent=`Câu ${Q.i+1}/${Q.list.length} · đúng ${Q.r}`;$("#q-bar").style.width=(Q.i/Q.list.length*100)+"%";$("#q-meta").innerHTML=`<span class="pill lo">GenAI-${q.lo}</span> <span class="pill ${q.k}">${q.k}</span>`;$("#q-text").textContent=q.q;$("#q-why").innerHTML="";$("#q-next").disabled=true;
+  $("#q-opts").innerHTML=q.o.map((o,i)=>`<button class="opt" data-i="${i}"><b class="l">${L[i]}</b>${esc(o)}</button>`).join("");
+  document.querySelectorAll("#q-opts .opt").forEach(b=>b.onclick=()=>qAnswer(+b.dataset.i));}
+function qAnswer(i){const q=Q.list[Q.i];const ok=i===q.a;document.querySelectorAll("#q-opts .opt").forEach(b=>{b.disabled=true;const k=+b.dataset.i;if(k===q.a)b.classList.add("ok");else if(k===i)b.classList.add("bad");});
+  const st=S.stats[q.id]||{r:0,w:0};if(ok){st.r++;Q.r++;}else st.w++;st.last=ok;S.stats[q.id]=st;save();Q.ans.push(ok);
+  $("#q-why").innerHTML=`<div class="why ${ok?"":"bad"}"><b>${ok?"✓ Đúng":"✗ Sai — đáp án: "+L[q.a]}</b><br>${q.w}</div>`;$("#q-next").disabled=false;$("#q-next").textContent=Q.i+1<Q.list.length?"Câu tiếp →":"Xem kết quả";$("#q-next").focus();}
+$("#q-next").onclick=()=>{Q.i++;if(Q.i<Q.list.length)qShow();else qDone();};
+$("#q-quit").onclick=()=>{$("#q-run").style.display="none";$("#q-setup").style.display="block";};
+function qDone(){$("#q-run").style.display="none";const p=Math.round(Q.r/Q.list.length*100);$("#q-done").style.display="block";$("#q-done").innerHTML=`<div class="card" style="text-align:center"><div class="mut sm">Kết quả</div><div class="stat" style="font-size:44px;color:${p>=80?"var(--ok)":p>=65?"var(--acc2)":"var(--bad)"}">${p}%</div><div class="mut">${Q.r}/${Q.list.length} câu đúng</div>
+  <div class="row" style="justify-content:center;margin-top:14px"><button class="btn p" id="q-again">Làm bộ khác</button>${Q.ans.some(x=>!x)?`<button class="btn" id="q-redo">Làm lại câu sai (${Q.ans.filter(x=>!x).length})</button>`:""}</div></div>`;
+  $("#q-again").onclick=()=>{$("#q-done").style.display="none";$("#q-setup").style.display="block";qPool();};const rd=$("#q-redo");if(rd)rd.onclick=()=>startQuiz(Q.list.filter((_,i)=>!Q.ans[i]));}
+document.addEventListener("keydown",e=>{if(!$("#v-quiz").classList.contains("on")||$("#q-run").style.display==="none")return;const k=e.key.toUpperCase();const idx=L.indexOf(k);if(idx>=0){const b=document.querySelector(`#q-opts .opt[data-i="${idx}"]`);if(b&&!b.disabled)b.click();}if(e.key==="Enter"&&!$("#q-next").disabled)$("#q-next").click();});
+
+// ===== EXAM =====
+const DIST={1:6,2:14,3:9,4:6,5:5};
+let E=null,eTimer=null;
+function eHist(){if(!S.exams.length){$("#e-hist").innerHTML="";return;}$("#e-hist").innerHTML="<h3 class='sm mut'>Lịch sử</h3><table><tr><th>#</th><th>Ngày</th><th>Điểm</th><th>%</th><th>Kết quả</th><th>Thời gian</th></tr>"+S.exams.slice().reverse().map((e,i)=>`<tr><td>${S.exams.length-i}</td><td>${new Date(e.t).toLocaleString("vi-VN")}</td><td>${e.score}/${e.total}</td><td>${Math.round(e.score/e.total*100)}%</td><td style="color:${e.score/e.total>=.65?"var(--ok)":"var(--bad)"}">${e.score/e.total>=.65?"ĐẠT":"Trượt"}</td><td>${Math.floor(e.used/60)}:${String(e.used%60).padStart(2,"0")}</td></tr>`).join("")+"</table>";}
+$("#e-start").onclick=()=>{let list=[];for(const c in DIST){const pool=QUIZ.filter(q=>q.ch==c);list=list.concat(pickN(pool,Math.min(DIST[c],pool.length)));}list=shuffle(list);
+  const mins=+$("#e-time").value;E={list,i:0,ans:Array(list.length).fill(null),flag:Array(list.length).fill(false),left:mins*60,limit:mins,start:Date.now()};
+  $("#e-setup").style.display="none";$("#e-done").style.display="none";$("#e-run").style.display="block";eShow();clearInterval(eTimer);eTimer=setInterval(eTick,1000);eTick();};
+function eTick(){if(!E)return;if(E.limit===0){$("#e-timer").textContent="∞";return;}E.left--;const m=Math.floor(E.left/60),s=E.left%60;$("#e-timer").textContent=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;$("#e-timer").classList.toggle("low",E.left<300);if(E.left<=0){toast("Hết giờ — tự động nộp");eSubmit();}}
+function eGrid(){$("#e-grid").innerHTML=E.list.map((_,i)=>`<button class="${E.ans[i]!==null?"ans":""} ${E.flag[i]?"flag":""} ${i===E.i?"cur":""}" data-i="${i}">${i+1}</button>`).join("");document.querySelectorAll("#e-grid button").forEach(b=>b.onclick=()=>{E.i=+b.dataset.i;eShow();});$("#e-cnt").textContent=`${E.ans.filter(a=>a!==null).length}/${E.list.length} đã trả lời`;}
+function eShow(){const q=E.list[E.i];$("#e-prog").textContent=`Câu ${E.i+1}/${E.list.length}`;$("#e-text").textContent=q.q;$("#e-flag").style.color=E.flag[E.i]?"var(--acc2)":"";
+  $("#e-opts").innerHTML=q.o.map((o,i)=>`<button class="opt ${E.ans[E.i]===i?"sel":""}" data-i="${i}"><b class="l">${L[i]}</b>${esc(o)}</button>`).join("");
+  document.querySelectorAll("#e-opts .opt").forEach(b=>b.onclick=()=>{E.ans[E.i]=+b.dataset.i;eShow();});$("#e-prev").disabled=E.i===0;$("#e-next").disabled=E.i===E.list.length-1;eGrid();}
+$("#e-prev").onclick=()=>{E.i--;eShow();};$("#e-next").onclick=()=>{E.i++;eShow();};
+$("#e-flag").onclick=()=>{E.flag[E.i]=!E.flag[E.i];eShow();};
+$("#e-submit").onclick=()=>{const un=E.ans.filter(a=>a===null).length;if(un&&!$("#e-submit").dataset.c){$("#e-submit").dataset.c=1;$("#e-submit").textContent=`Còn ${un} câu trống — nộp luôn?`;setTimeout(()=>{delete $("#e-submit").dataset.c;$("#e-submit").textContent="Nộp bài";},3000);return;}eSubmit();};
+function eSubmit(){clearInterval(eTimer);const used=Math.round((Date.now()-E.start)/1000);let sc=0;E.list.forEach((q,i)=>{const ok=E.ans[i]===q.a;if(ok)sc++;const st=S.stats[q.id]||{r:0,w:0};if(ok)st.r++;else st.w++;st.last=ok;S.stats[q.id]=st;});
+  S.exams.push({t:Date.now(),score:sc,total:E.list.length,used});save();$("#e-run").style.display="none";$("#e-done").style.display="block";const p=Math.round(sc/E.list.length*100);const pass=sc/E.list.length>=.65;
+  const byCh={};E.list.forEach((q,i)=>{byCh[q.ch]=byCh[q.ch]||{r:0,t:0};byCh[q.ch].t++;if(E.ans[i]===q.a)byCh[q.ch].r++;});
+  $("#e-done").innerHTML=`<div class="card" style="text-align:center"><div class="mut sm">Kết quả thi thử</div><div class="stat" style="font-size:48px;color:${pass?"var(--ok)":"var(--bad)"}">${p}%</div><div>${sc}/${E.list.length} câu · <b style="color:${pass?"var(--ok)":"var(--bad)"}">${pass?"ĐẠT ✓":"CHƯA ĐẠT (cần ≥ 65%)"}</b> · ${Math.floor(used/60)} phút ${used%60}s</div>
+  <div class="row" style="justify-content:center;margin-top:10px">${Object.keys(byCh).map(c=>`<span class="pill lo">Ch${c}: ${byCh[c].r}/${byCh[c].t}</span>`).join(" ")}</div>
+  <div class="row" style="justify-content:center;margin-top:14px"><button class="btn p" id="e-again">Thi lại</button><button class="btn" id="e-tohome">Về tổng quan</button></div></div>
+  <h2>Xem lại từng câu</h2>${E.list.map((q,i)=>{const ok=E.ans[i]===q.a;return `<div class="card" style="border-color:${ok?"rgba(34,197,94,.4)":"rgba(239,68,68,.4)"}"><div class="row xs" style="margin-bottom:6px"><b>${i+1}.</b><span class="pill lo">GenAI-${q.lo}</span><span class="pill ${q.k}">${q.k}</span><span style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"✓ Đúng":E.ans[i]===null?"— Bỏ trống":"✗ Sai"}</span></div><div style="font-weight:600;margin-bottom:8px">${esc(q.q)}</div>${q.o.map((o,k)=>`<div class="opt ${k===q.a?"ok":k===E.ans[i]?"bad":""}" style="cursor:default;padding:8px 12px;margin:4px 0"><b class="l">${L[k]}</b>${esc(o)}</div>`).join("")}<div class="why ${ok?"":"bad"}">${q.w}</div></div>`;}).join("")}`;
+  $("#e-again").onclick=()=>{$("#e-done").style.display="none";$("#e-setup").style.display="block";eHist();};$("#e-tohome").onclick=()=>{$("#e-done").style.display="none";$("#e-setup").style.display="block";show("home");};window.scrollTo(0,0);}
+
+// ===== WRONG =====
+function wrongList(){return QUIZ.filter(q=>{const s=S.stats[q.id];return s&&(s.w>0)&&(s.last===false||s.w>=s.r);}).sort((a,b)=>(S.stats[b.id].w-S.stats[b.id].r)-(S.stats[a.id].w-S.stats[a.id].r));}
+function renderWrong(){const l=wrongList();$("#w-cnt").textContent=`${l.length} câu cần ôn lại (đã sai ít nhất 1 lần và chưa "chuộc lỗi")`;$("#w-list").innerHTML=l.length?l.map(q=>{const s=S.stats[q.id];return `<div class="card"><div class="row xs" style="margin-bottom:6px"><span class="pill lo">GenAI-${q.lo}</span><span class="pill ${q.k}">${q.k}</span><span class="mut">sai ${s.w} · đúng ${s.r}</span></div><div style="font-weight:600;margin-bottom:8px">${esc(q.q)}</div><div class="sm"><b style="color:var(--ok)">${L[q.a]}. ${esc(q.o[q.a])}</b></div><div class="why" style="margin-top:8px">${q.w}</div></div>`;}).join(""):`<div class="card mut">Chưa có câu sai nào. Đi luyện tập đi 💪</div>`;}
+$("#w-retry").onclick=()=>{const l=wrongList();if(!l.length){toast("Không có câu sai");return;}startQuiz(l);show("quiz");};
+$("#w-clear").onclick=()=>{Object.values(S.stats).forEach(s=>{s.w=0;s.last=true;});save();renderWrong();toast("Đã xoá");};
+
+// ===== INIT =====
+renderStudy();qPool();
+const h=location.hash.slice(1);show(VIEWS.includes(h)?h:"home");
+</script>
+</body>
+</html>

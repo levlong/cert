@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>CT-GenAI Study Lab — ISTQB Testing with Generative AI v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -117,7 +117,11 @@ label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size
 .chips button:hover{color:var(--acc);border-color:var(--acc)}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
 .toast.on{opacity:1}
-html,body{overflow-x:clip}
+html,body{overflow-x:hidden;max-width:100%}
+header,.wrap{max-width:100%;overflow-x:hidden}
+.wrap{max-width:1080px}
+h1,h2,h3,.sec-h .t,.kw span,.opt,.card,li,.pill{overflow-wrap:anywhere}
+.card{min-width:0}
 @media(max-width:600px){.hd{padding:10px}nav button{padding:6px 9px;font-size:12px}.stat{font-size:22px}.wrap input,.wrap select,.wrap textarea{font-size:16px}}
 </style>
 </head>
